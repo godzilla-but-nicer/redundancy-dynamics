@@ -51,4 +51,52 @@ rule verify_approximation:
     shell:
         'python scripts/verify_approx.py {wildcards.rule}'
 
+# these rules are all about big comparisons using all of the eca they have
+# hard coded N values which is less than ideal
+rule summarize_eca:
+    input:
+        expand(
+            "data/eca/attractors/rule_{rule}/approx_attr_{rule}_" + N + ".csv",
+            rule=config['unique_eca_rules'])
+    output:
+        'plots/eca/transient_hist_by_class_{N}.png',
+        "data/eca/attractors/eca_{N}_summary.csv"
+    shell:
+        'python scripts/summarize_eca.py {wildcards.N}'
 
+rule eca_canalization:
+    input:
+        'data/eca/attractors/eca_{N}_summary.csv',
+        'data/eca/canalization_df.csv'
+    output:
+        'plots/eca/mean_transient_by_ke_{N}.png',
+        'plots/eca/mean_transient_by_ks_{N}.png',
+        'plots/eca/coef_transient_by_ke_{N}.png'
+    shell:
+        'python scripts/plot_eca_canalization.py {wildcard.N}'
+
+rule eca_imin:
+    input:
+        'data/eca/attractors/eca_{N}_summary.csv',
+        'data/eca/imin_df.csv'
+    output:
+        'plots/eca/mean_transient_by_excess_synergy_imin_{N}.png',
+        'plots/eca/mean_transient_by_shared_imin_{N}.png',
+        'plots/eca/mean_transient_by_synergy_imin_{N}.png',
+        'plots/eca/mean_transient_by_unq_center_imin_{N}.png',
+        'plots/eca/mean_transient_by_unq_side_imin_{N}.png'
+    shell:
+        'python scripts/plot_eca_info.py {wildcard.N} imin'
+
+rule eca_pm:
+    input:
+        'data/eca/attractors/eca_{N}_summary.csv',
+        'data/eca/pm_df.csv'
+    output:
+        'plots/eca/mean_transient_by_excess_synergy_pm_{N}.png',
+        'plots/eca/mean_transient_by_shared_pm_{N}.png',
+        'plots/eca/mean_transient_by_synergy_pm_{N}.png',
+        'plots/eca/mean_transient_by_unq_center_pm_{N}.png',
+        'plots/eca/mean_transient_by_unq_side_pm_{N}.png'
+    shell:
+        'python scripts/plot_eca_info.py {wildcards.N} pm'

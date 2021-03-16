@@ -24,6 +24,3 @@ for ti in tqdm(range(trials)):
 
 df = pd.DataFrame({'period': periods, 'transient': transients})
 df.to_csv('data/eca/attractors/rule_' + str(rule) + '/exact_attr_' + str(rule) + '_' + str(N) + '.csv')
-
-
-

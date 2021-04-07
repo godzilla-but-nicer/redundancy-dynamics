@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
+import time
 from casim import CA1D
-from tqdm import tqdm
 
 # unpack command-line args
 N = int(sys.argv[1])
@@ -22,7 +22,9 @@ run_list = []
 ca = CA1D.CA1D(5, 0, random_seed=666)
 
 # initialize the simulation class
-for rule in tqdm(range(n_rules)):
+for rule in range(n_rules):
+    # write to logs on bigred
+    rule_start = time.time()
     # we will not get the same initial states in each rule but thats ok
     ca.set_rule(ca.lambda_rule(lamb))
     for trial in range(n_trials):
@@ -38,6 +40,8 @@ for rule in tqdm(range(n_rules)):
         value_list.append(tra)
         run_list.append(trial)
         run_list.append(trial)
+
+    print('Rule ' + str(rule + 1) + '/' + str(n_rules) + ' complete in: ' + str(time.time() - rule_start))
     
 # get everything into a dataframe to save a csv
 df_dict = {'rule': rule_list, 'trial':run_list, 'measure': measure_list, 'value': value_list}

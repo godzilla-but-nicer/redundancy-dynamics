@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 import time
@@ -7,7 +6,7 @@ from casim import CA1D
 
 # unpack command-line args
 N = int(sys.argv[1])
-max_steps = N * 10000
+max_steps = N * 1000
 lamb = int(sys.argv[2])
 n_rules = int(sys.argv[3])
 n_trials = int(sys.argv[4])
@@ -56,14 +55,4 @@ with open(param_file, 'w') as fout:
     fout.write('max_steps: ' + str(max_steps) + '\n')
     fout.write('n_rules: ' + str(n_rules) + '\n')
     fout.write('n_trials: ' + str(n_trials) + '\n')
-
-# also save an overall distribution of transients because we're here so why not
-transients = df_out[df_out['measure'] == 'transient']['value'].values
-hist, edges = np.histogram(transients, bins=20)
-bin_width = edges[1] - edges[0]
-fig, ax = plt.subplots()
-ax.plot(edges[:-1]+0.5*bin_width, hist)
-ax.set_xlabel('Transient Length')
-ax.set_ylabel('Distribution')
-plt.savefig('plots/k5/lambda_dynamics_dists/' + str(lamb) + 'transient.png')
 

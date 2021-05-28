@@ -7,7 +7,7 @@ from cana.boolean_node import BooleanNode
 # rules will come from the dynamics dataframes
 lamb = sys.argv[1]
 df_dict = []
-df_in = pd.read_csv('data/k5/attractors/lambda_' + str(l) + '_attractors.csv')
+df_in = pd.read_csv('data/k5/attractors/lambda_' + str(lamb) + '_attractors.csv')
 rules = df_in['rule'].unique().astype(int)
 for rule in rules:
     canal = {}  # becomes row of dataframe

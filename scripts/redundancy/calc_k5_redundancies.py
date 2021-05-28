@@ -5,7 +5,7 @@ from tqdm import tqdm
 from cana.boolean_node import BooleanNode
 
 # rules will come from the dynamics dataframes
-lamb = sys.argv[1]
+l = sys.argv[1]
 df_dict = []
 df_in = pd.read_csv('data/k5/attractors/lambda_' + str(lamb) + '_attractors.csv')
 rules = df_in['rule'].unique().astype(int)
@@ -19,8 +19,8 @@ for rule in rules:
     bn = BooleanNode.from_output_list(outputs=arr, name=rule)
     ks = bn.input_symmetry()
     kr = bn.input_redundancy()
-    sym0, sym1, sym2, sym3, sym4 = bn.input_symmetry(mode='input')
-    red0, red1, red2, red3, red4 = bn.input_redundancy(mode='input')
+    sym0, sym1, sym2, sym3, sym4 = bn.edge_symmetry()
+    red0, red1, red2, red3, red4 = bn.edge_redundancy()
 
     # update the dictionary with the PI values
     canal['rule'] = rule
@@ -41,6 +41,6 @@ for rule in rules:
 
 # write out the dataframe
 df = pd.DataFrame(df_dict)
-df_fout = open('data/k5/stats/k5_cana_lambda_' + str(lamb) + '.csv', 'w')
+df_fout = open('data/k5/stats/k5_cana_lambda_' + str(l) + '.csv', 'w')
 df.to_csv(df_fout)
 df_fout.close()

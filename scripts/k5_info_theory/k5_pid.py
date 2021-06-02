@@ -1,11 +1,20 @@
 import dit
-import pandas as pd
+import networkx as nx
 import numpy as np
+import os
+import pandas as pd
 import sys
-from tqdm import tqdm
 from casim.utils import to_binary
+from glob import glob
 
-pid_method = sys.argv[1]
+rule = sys.argv[1]
+
+if sys.argv[2] == 'imin':
+    pid_func = dit.pid.PID_WB
+elif sys.argv[2] == 'ipm':
+    pid_func = dit.pid.PID_PM
+else:
+    raise ValueError("PID method must be 'imin' or 'ipm'")
 
 # these functions used to live in their own script, I dont have a good place for the mnow
 # convert a number of inputs into the appropriate sets of inputs
@@ -36,33 +45,47 @@ def make_dist_arr(n, inputs, digits=8):
 # vars for later
 n_inputs = 2**5
 df_dict = []
-input_ordering = make_input_strings(5)
-for l in range(2, n_inputs - 1):
-    print('Lambda = ' + str(l))
-    l_df = pd.read_csv('data/k5/attractors/lambda_' + str(l) + '_attractors.csv')
-    for rule in tqdm(np.unique(l_df['rule'])):
-        pis = {}  # gets filled with each pi term for this rule
-        
-        # need to format strings how dit likes it, will be list of strings
-        arr = make_dist_arr(rule, input_ordering, len(input_ordering))
-        print('doing the decomp now')
 
-        # use dit to calculate the PID
-        dist = dit.Distribution(arr, [1/n_inputs]*n_inputs)
-        if pid_method == 'imin':
-            pid = dit.pid.PID_WB(dist)
-        elif pid_method == 'pm':
-            pid = dit.pid.PID_PM(dist)
-        else:
-            print('Bad PID method arg')
-            raise ValueError
+# assume only one data file per rule
+data_file = glob('data/k5/runs/' + rule + '*.csv')[0]
+time_series = np.loadtxt(data_file, delimiter = ',')[:50]
 
-        # Update dictionary to contain row for this term
-        pis['rule'] = rule
-        for key in pid._pis.keys():
-            pis[str(key)] = pid._pis[key]
-        df_dict.append(pis)
+# now we have to get the probs of each transition actually occuring
+transitions = to_binary(int(rule), 2**5)
+probs = np.zeros(2**5)
+arr_strings = []
 
-df = pd.DataFrame(df_dict)
-df_fout = open('data/k5/stats/k5_pm.csv', 'w')
-df.to_csv(df_fout)
+# to make searching faster later
+enc_vec = 2 ** (np.arange(5, 0, -1) - 1)
+encoded = np.dot(time_series, enc_vec)
+total_obs = encoded.shape[0]
+for neighborhood in range(2**5):
+    # find every occurance of the neighborhood
+    occurances = np.sum(encoded == neighborhood)
+    probs[neighborhood] = occurances / total_obs
+    print(probs[neighborhood])
+
+    # now we need to build the strings for `dit`
+    string_array = list(to_binary(neighborhood, 5).astype(str))
+    string_array.append(str(transitions[neighborhood]))
+    arr_strings.append(''.join(string_array))
+
+print(np.sum(probs))
+
+# use dit to calculate the PID
+dist = dit.Distribution(arr_strings, probs)
+pid_output = pid_func(dist)
+
+# pull out the values of the pid
+pis = {}
+pis['rule'] = rule
+for key in pid._pis.keys():
+    pis[str(key)] = pid._pis[key]
+df_dict.append(pis)
+
+df_out = pd.DataFrame(df_dict)
+df_out.to_csv('data/k5/pid/' + rule + '_' + sys.argv[2] + '.csv')
+
+# if the lattice is not already saved in a format networkx can load than save it
+if not os.path.exists('data/k5/pid/lattice.graphml'):
+    nx.write_graphml(pid_output._lattice, 'data/k5/pid/lattice.graphml')

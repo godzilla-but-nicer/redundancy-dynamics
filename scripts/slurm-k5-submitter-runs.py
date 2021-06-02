@@ -2,7 +2,7 @@ from glob import glob
 import os
 import pandas as pd
 
-files = glob('~/redundancy-dynamics/data/k5/runs/*.csv')
+files = glob('~/projects/redundancy-dynamics/data/k5/runs/*_.csv')
 rules = [f.split('/')[-1].split('_')[0] for f in files]
 
 submit_file = '/N/u/patgwall/BigRed3/redundancy-dynamics/slurmy.script'

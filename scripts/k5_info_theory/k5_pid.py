@@ -2,10 +2,19 @@ import dit
 import pandas as pd
 import numpy as np
 import sys
+from glob import glob
 from tqdm import tqdm
 from casim.utils import to_binary
 
 pid_method = sys.argv[1]
+rule = sys.argv[2]
+
+if pid_method == 'imin':
+    pid = dit.pid.PID_WB(dist)
+elif pid_method == 'pm':
+    pid = dit.pid.PID_PM(dist)
+else:
+    raise ValueError("method must be 'ipm' or 'imin'")
 
 # these functions used to live in their own script, I dont have a good place for the mnow
 # convert a number of inputs into the appropriate sets of inputs
@@ -33,6 +42,16 @@ def make_dist_arr(n, inputs, digits=8):
         dist.append(inp + str(outputs[i]))
     return dist
 
+# assumes that there is only one data file per rule
+data_file = glob('data/k5/runs/' + rule + '*.csv')[0]
+time_series = np.loadtxt(data_file)
+
+# build up an array of all of the neigborhoods
+wolfram_neighborhoods = np.zeros((2**5, 5))
+for i in range(2**5):
+    wolfram_neighborhoods[i,:] = to_binary(i, 2**5)
+
+
 # vars for later
 n_inputs = 2**5
 df_dict = []
@@ -49,13 +68,6 @@ for l in range(2, n_inputs - 1):
 
         # use dit to calculate the PID
         dist = dit.Distribution(arr, [1/n_inputs]*n_inputs)
-        if pid_method == 'imin':
-            pid = dit.pid.PID_WB(dist)
-        elif pid_method == 'pm':
-            pid = dit.pid.PID_PM(dist)
-        else:
-            print('Bad PID method arg')
-            raise ValueError
 
         # Update dictionary to contain row for this term
         pis['rule'] = rule

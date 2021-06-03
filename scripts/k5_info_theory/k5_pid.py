@@ -48,7 +48,7 @@ df_dict = []
 
 # assume only one data file per rule
 data_file = glob('data/k5/runs/' + rule + '*.csv')[0]
-time_series = np.loadtxt(data_file, delimiter = ',')[:50]
+time_series = np.loadtxt(data_file, delimiter = ',')
 
 # now we have to get the probs of each transition actually occuring
 transitions = to_binary(int(rule), 2**5)
@@ -79,13 +79,9 @@ pid_output = pid_func(dist)
 # pull out the values of the pid
 pis = {}
 pis['rule'] = rule
-for key in pid._pis.keys():
-    pis[str(key)] = pid._pis[key]
+for key in pid_output._pis.keys():
+    pis[str(key)] = pid_output._pis[key]
 df_dict.append(pis)
 
 df_out = pd.DataFrame(df_dict)
 df_out.to_csv('data/k5/pid/' + rule + '_' + sys.argv[2] + '.csv')
-
-# if the lattice is not already saved in a format networkx can load than save it
-if not os.path.exists('data/k5/pid/lattice.graphml'):
-    nx.write_graphml(pid_output._lattice, 'data/k5/pid/lattice.graphml')

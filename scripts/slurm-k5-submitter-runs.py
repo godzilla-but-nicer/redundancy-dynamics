@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import sys
 
-files = glob('data/k5/runs/*.csv')
+files = glob('~/projects/redundancy-dynamics/data/k5/runs/*_.csv')
 rules = [f.split('/')[-1].split('_')[0] for f in files]
 print(rules)
 submit_file = '/N/u/patgwall/BigRed3/redundancy-dynamics/slurmy.script'
@@ -32,3 +32,4 @@ for rule in rules:
     with open(submit_file, 'w') as fout:
         fout.write(submit_str)
     os.system('sbatch ' + submit_file)
+

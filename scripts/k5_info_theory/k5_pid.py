@@ -4,47 +4,21 @@ import numpy as np
 import os
 import pandas as pd
 import sys
-from casim.utils import to_binary
 from glob import glob
+from tqdm import tqdm
+from casim.utils import to_binary
 
 rule = sys.argv[1]
 
-if sys.argv[2] == 'imin':
-    pid_func = dit.pid.PID_WB
-elif sys.argv[2] == 'ipm':
-    pid_func = dit.pid.PID_PM
+pid_method = sys.argv[2]
+
+if pid_method == 'imin':
+    pid = dit.pid.PID_WB(dist)
+elif pid_method == 'ipm':
+    pid = dit.pid.PID_PM(dist)
 else:
-    raise ValueError("PID method must be 'imin' or 'ipm'")
+    raise ValueError("method must be 'ipm' or 'imin'")
 
-# these functions used to live in their own script, I dont have a good place for the mnow
-# convert a number of inputs into the appropriate sets of inputs
-# formats the inputs as strings of 1s and zeros in the order that wolframs rules are formatted
-def make_input_strings(n_inputs):
-    # set up variables for later
-    input_sets = range(2**n_inputs)
-    inputs = []
-
-    # iterate over each numbered input set
-    for inp in input_sets:
-        # wolfram style input sets
-        binary_input = to_binary(inp, n_inputs).astype(str)
-        input_string = ''.join(binary_input)
-
-        inputs.append(input_string)
-
-    return inputs
-
-# make a list of strings to pass to dit with the output on each string
-def make_dist_arr(n, inputs, digits=8):
-    outputs = to_binary(n, digits)
-    dist = []
-    for i, inp in enumerate(inputs):
-        dist.append(inp + str(outputs[i]))
-    return dist
-
-# vars for later
-n_inputs = 2**5
-df_dict = []
 
 # assume only one data file per rule
 data_file = glob('data/k5/runs/' + rule + '*.csv')[0]
@@ -85,3 +59,4 @@ df_dict.append(pis)
 
 df_out = pd.DataFrame(df_dict)
 df_out.to_csv('data/k5/pid/' + rule + '_' + sys.argv[2] + '.csv')
+

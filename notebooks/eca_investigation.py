@@ -55,6 +55,7 @@ for rule in rules:
     imin_sb.append(synergy_bias(imin_row))
     ipm_sb.append(synergy_bias(ipm_row))
     ke_vals.append(1 - cana_row['kr*'].values[0])
+sbdf = pd.DataFrame({'rule': rules, 'B_syn': imin_sb})
 # %%
 plt.figure(figsize=(4,4))
 g = sns.JointGrid(x=ke_vals, y=imin_sb)
@@ -72,5 +73,51 @@ plt.xlabel(r'$k_e$', fontsize=14)
 plt.ylabel(r'$B_{syn}(I_{\pm})$', fontsize=14)
 plt.tight_layout()
 plt.savefig('../plots/eca/ipm_ke.png', pad_inches=0.2)
+plt.show()
+# %% [markdown]
+# what about synergy bias against other info theory stuff? like O-information
+
+#%%
+import statsmodels.api as sm
+from scipy.stats import spearmanr
+o_info = pd.read_csv('../data/eca/stats/o_info.csv', index_col = 0)
+info_df = o_info.merge(sbdf, on = 'rule')
+
+# drop insignificant o_info values
+info_df_signif = info_df[(info_df['p'] < 0.05) | (info_df['p'] > 0.95)]
+print(spearmanr(info_df_signif['B_syn'], info_df_signif['o-information']))
+
+plt.figure(figsize=(4,4))
+plt.scatter(info_df_signif['B_syn'], info_df_signif['o-information'])
+plt.xlabel(r'$B_{syn} \;[I_{min}]$')
+plt.ylabel(r'O-information')
+plt.show()
+
+
+
+# %% [markdown]
+# ## Synergy Bias and dynamics
+# first we're going to have to load the dynamics data
+
+# %%
+rows = []
+# get the avg transient from each eca
+for rule in unq_rules['rule']:
+    row = {}
+    df = pd.read_csv('../data/eca/attractors/rule_' + str(rule) + '/approx_attr_' + str(rule) + '_100.csv')
+    mean_transient = np.mean(df['transient'].dropna())
+    row['rule'] = rule
+    row['mean_transient'] = mean_transient
+    rows.append(row)
+
+dyn_df = pd.DataFrame(rows)
+dyn_sb = sbdf.merge(dyn_df, on = 'rule').dropna()
+# %%
+print(spearmanr(dyn_sb['B_syn'], np.log(dyn_sb['mean_transient'])))
+
+plt.figure()
+plt.scatter(dyn_sb['B_syn'], np.log(dyn_sb['mean_transient']))
+plt.xlabel(r'$B_{syn} \;\; [I_{min}]$')
+plt.ylabel(r'$\ln ( \hat l )$')
 plt.show()
 # %%

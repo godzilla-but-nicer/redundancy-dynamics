@@ -7,7 +7,7 @@ import sys
 method = sys.argv[1]
 
 # data files
-data_file = 'data/k5/pid/ipm.csv'  # 'rule' col and cols for all atoms
+data_file = 'data/k5/pid/' + method + '_.csv'  # 'rule' col and cols for all atoms
 lattice_file = 'data/lattice_5.gml'
 
 # root node for search
@@ -40,4 +40,4 @@ info['B_syn'] /= layer[tip]
 
 synergy_bias_df = info[['rule', 'B_syn']].copy()
 
-synergy_bias_df.to_csv('data/k5/stats/ipm_synergy_bias.csv', index = None)
+synergy_bias_df.to_csv('data/k5/stats/' + method + '_synergy_bias.csv', index = None)

@@ -13,9 +13,9 @@ rule = sys.argv[1]
 pid_method = sys.argv[2]
 
 if pid_method == 'imin':
-    pid = dit.pid.PID_WB(dist)
+    pid = dit.pid.PID_WB
 elif pid_method == 'ipm':
-    pid = dit.pid.PID_PM(dist)
+    pid = dit.pid.PID_PM
 else:
     raise ValueError("method must be 'ipm' or 'imin'")
 
@@ -48,15 +48,14 @@ print(np.sum(probs))
 
 # use dit to calculate the PID
 dist = dit.Distribution(arr_strings, probs)
-pid_output = pid_func(dist)
+pid_output = pid(dist)
 
 # pull out the values of the pid
 pis = {}
 pis['rule'] = rule
 for key in pid_output._pis.keys():
     pis[str(key)] = pid_output._pis[key]
-df_dict.append(pis)
 
-df_out = pd.DataFrame(df_dict)
+df_out = pd.DataFrame([pis])
 df_out.to_csv('data/k5/pid/' + rule + '_' + sys.argv[2] + '.csv')
 

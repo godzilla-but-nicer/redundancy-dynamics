@@ -132,3 +132,6 @@ dmypy.json
 .snakemake/
 .vscode/
 data/
+*.png
+plots/
+presentations/

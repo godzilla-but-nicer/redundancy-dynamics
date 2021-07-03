@@ -7,7 +7,7 @@ from jpype import *
 
 
 # for testing
-files = glob('data/k5/runs/*')
+files = glob('data/k5/runs/*_80_100.csv')
 rules = [int(f.split('/')[-1].split('_')[0]) for f in files]
 
 row_list = []
@@ -15,7 +15,7 @@ row_list = []
 # Add JIDT jar library to the path
 jarLocation = "/home/patgwall/projects/jidt/infodynamics.jar"
 # Start the JVM (add the "-Xmx" option with say 1024M if you get crashes due to not enough memory space)
-startJVM(getDefaultJVMPath(), "-ea", "-Djava.class.path=" + jarLocation)
+startJVM(getDefaultJVMPath(), "-ea", "-Djava.class.path=" + jarLocation, "-Xmx1024M")
 
 # 1. Construct the calculator:
 calcClass = JPackage(
@@ -26,13 +26,14 @@ calc = calcClass(2, 12, 1, 1, 1, 1)
 
 
 for rule in rules:
-    in_file_name = 'data/k5/runs/' + str(rule) + '_500_300_100.csv'
+    print('\t ~~~~~ Rule', rule, '~~~~~')
+    in_file_name = 'data/k5/runs/' + str(rule) + '_500_80_100.csv'
     data = np.loadtxt(in_file_name, delimiter=',').astype(int)
     te_vals = np.zeros(4) - 1
     row = {}
     for ip, pair in enumerate([(0, 2), (1, 2), (3, 2), (4, 2)]):
-        source = JArray(JInt,1)(data[:500000, pair[0]].tolist())
-        destination = JArray(JInt, 1)(data[:500000, pair[1]].tolist())
+        source = JArray(JInt,1)(data[:, pair[0]].tolist())
+        destination = JArray(JInt, 1)(data[:, pair[1]].tolist())
 
         calc.initialise()
         # 4. Supply the sample data:

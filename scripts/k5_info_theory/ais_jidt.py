@@ -7,7 +7,7 @@ from jpype import *
 
 
 #for testing
-files = glob('data/k5/runs/*')
+files = glob('data/k5/runs/*80_100.csv')
 rules = [int(f.split('/')[-1].split('_')[0]) for f in files]
 
 row_list = []
@@ -26,7 +26,7 @@ calc = calcClass(2, 12)
 for rule in rules:
     try: # sometimes this shit just doesnt work
         calc.initialise()
-        in_file_name = glob('data/k5/runs/' + str(rule) + '*.csv')[0]
+        in_file_name = glob('data/k5/runs/' + str(rule) + '*80_100.csv')[0]
         data = np.loadtxt(in_file_name, delimiter=',').astype(int)
         te_vals = np.zeros(4) - 1
         row = {}

@@ -1,0 +1,78 @@
+\documentclass[12 pt]{article}
+\usepackage[margin=1in]{geometry}
+
+% Refs
+\usepackage[style=nature, backend=bibtex]{biblatex}
+\addbibresource{main.bib}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Figures
+\usepackage{graphicx}
+\newcommand{\figref}[1]{Fig.~\ref{fig:#1}}
+\graphicspath{{../plots/}}
+
+% subfigures
+\usepackage{caption}
+\usepackage{subcaption}
+
+% line spacing
+\usepackage{setspace}
+\doublespacing
+
+% author note
+\usepackage{xcolor}
+\newcommand{\note}[1]{\textcolor{red}{[#1]}}
+
+\title{Luis Paper}
+\author{Pat Wall}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    Heeeyyyyyy this is the abstract baby. ill write this last probably!!
+\end{abstract}
+
+\section{Introduction}
+
+\section{Results}
+
+\begin{enumerate}
+    \item bsyn and ke show similar relationships to system dynamics ($\rho=0.693, \; p<0.05$) and ($\rho=0.511, \; p<0.05$) [figure in supplement?] 
+    \item Output entropy and dynamics?? \figref{ent-dyn} [get statistics?]
+    \item 
+\end{enumerate}
+
+\begin{figure} 
+    \includegraphics{k5/bsyn_dyn.pdf}
+    \caption{Synergy Bias measures transient length kind of}
+    \label{fig:bsyn-dyn}
+\end{figure}
+
+\begin{figure} 
+    \includegraphics{k5/ke_dynamics.pdf}
+    \caption{Synergy Bias measures transient length kind of}
+    \label{fig:ke-dyn}
+\end{figure}
+
+\begin{figure}
+    \includegraphics{k5/entropy_dynamics.pdf}
+    \caption{rule table output entropy predicts dynamics}
+    \label{fig:ent-dyn}
+\end{figure}
+
+\begin{figure}
+    \includegraphics{k5/ke_vs_bsyn.pdf}
+    \caption{a fi}
+    \label{fig:be-bsyn}
+\end{figure}
+
+\section{Discussion}
+
+\end{document}

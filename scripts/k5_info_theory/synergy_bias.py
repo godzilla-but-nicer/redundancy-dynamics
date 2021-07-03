@@ -7,7 +7,7 @@ import sys
 method = sys.argv[1]
 
 # data files
-data_file = 'data/k5/pid/' + method + '_.csv'  # 'rule' col and cols for all atoms
+data_file = 'data/k5/pid/' + method + '.csv'  # 'rule' col and cols for all atoms
 lattice_file = 'data/lattice_5.gml'
 
 # root node for search
@@ -15,13 +15,17 @@ root = r'{0}{1}{2}{3}{4}'
 tip = r'{0:1:2:3:4}'
 
 # load data
-info = pd.read_csv(data_file)
-info['B_syn'] = 0  # this gets values added to it downstream
+info = pd.read_csv(data_file, index_col=0)
 lattice = nx.read_gml(lattice_file)
+
+# set up cols for calculations
+info['B_syn'] = 0  
+info['mutual_info'] = info.drop('rule', axis = 1).sum(axis = 1)
 
 # set up the BFS
 queue = [root]
 layer = {root: 1}
+
 # keep going til the queue is done
 while queue:
     # remove the first element, thats what we check next
@@ -37,7 +41,8 @@ while queue:
 
 # normalize synergy bias
 info['B_syn'] /= layer[tip]
+info['B_syn'] /= info['mutual_info']
 
-synergy_bias_df = info[['rule', 'B_syn']].copy()
+synergy_bias_df = info[['rule', 'B_syn', 'mutual_info']].copy()
 
 synergy_bias_df.to_csv('data/k5/stats/' + method + '_synergy_bias.csv', index = None)

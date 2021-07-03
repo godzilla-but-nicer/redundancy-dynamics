@@ -11,7 +11,7 @@ from glob import glob
 # each row is outputed in parallel so they have to be combined to be useful
 # %%
 dfs = []
-for file in glob('../data/k5/pid/*_ipm.csv'):
+for file in glob('../data/k5/pid/raw_ipm/*_ipm.csv'):
     rule = int(file.split('/')[-1].split('_')[0])
     print('Adding rule ', rule)
     df_row = pd.read_csv(file, index_col = 0)
@@ -107,4 +107,83 @@ lab_map['rule'] = 'rule'
 
 imin_df = imin_df.rename(columns = lab_map)
 imin_df.to_csv('../data/k5/pid/imin.csv')
+# %% [markdown]
+# # O-information
+#
+# The O-information calculations take a long time so I've started preserving 
+# all of the old ones and just adding a file with new changes. these need to be 
+# merged whenever new calculations are done.
+
+# %%
+o_info_new = pd.read_csv('../data/k5/stats/o_information_new.csv', index_col=0)
+o_info_old = pd.read_csv('../data/k5/stats/o_information.csv', index_col=0)
+
+o_info_all = o_info_old.merge(o_info_new, how='outer', on='rule')
+
+print('Old df rows:', o_info_old.shape[0])
+print('New df rows:', o_info_new.shape[0])
+print('Sum of Rows:', o_info_old.shape[0] + o_info_new.shape[0])
+print('New df rows:', o_info_all.shape[0])
+
+o_info_all.to_csv('../data/k5/stats/o_information.csv')
+# %% [markdown]
+# # Directed measures
+#
+# Finally we can combine transfer entropy measurements and active information
+# storage because they are _sort of_ the same thing. We use them in the same way
+# at least.
+# %%
+te_data = pd.read_csv('../data/k5/stats/te_rules.csv', index_col=0)
+ais_data = pd.read_csv('../data/k5/stats/ais_rules.csv', index_col=0)
+
+directed = te_data.merge(ais_data, on='rule')
+
+print('TE shape:', te_data.shape)
+print('AIS shape:', ais_data.shape)
+print('Merged shape:', directed.shape)
+
+directed.to_csv('../data/k5/stats/directed.csv')
+# %% [markdown]
+# ## Dynamics data
+#
+# Here we will combine all of the data living in 'data/k5/attractors/' into
+# something more useful.
+
+# %%
+dfs = []
+for fin in glob('../data/k5/attractors/lambda*.csv'):
+    lamb = fin.split('_')[1]
+    # load the dynamics data
+    dyn = pd.read_csv(fin,
+                      index_col=0)
+    # have to do some really dumb conversion
+    dyn['rule'] = dyn['rule'].astype(int)
+
+    # lets just average over transients and periods here
+    trans = dyn[dyn['measure'] == 'transient'].copy().drop('measure', axis=1)
+    trans['transient'] = trans['value']
+    trans = trans[['rule', 'trial', 'transient']]
+    trans['unq_ind'] = range(0, trans.shape[0])
+    print(trans.shape)
+
+    peri = dyn[dyn['measure'] == 'period'].copy().drop('measure', axis=1)
+    peri['period'] = peri['value']
+    peri = peri[['rule', 'trial', 'period']]
+    peri['unq_ind'] = range(0, peri.shape[0])
+    print(peri.shape)
+
+    # combine and clean. get mean of feautres by rule
+    dyn1 = pd.merge(peri, trans, how='left', on=['unq_ind'])
+    dyn1['lambda'] = lamb
+    dyn1['rule'] = dyn1['rule_x']
+    dyn1['period_transient'] = (dyn1['period'] + dyn1['transient']).fillna(64000)
+    dyn = (dyn1[['lambda', 'rule', 'period_transient', 'period', 'transient']]
+           .groupby(['rule', 'lambda'])
+           .mean()
+           .reset_index())
+    
+    dfs.append(dyn)
+
+dynamics = pd.concat(dfs)
+dynamics.to_csv('../data/k5/stats/dynamics.csv')
 # %%

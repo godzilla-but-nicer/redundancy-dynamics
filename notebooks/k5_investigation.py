@@ -89,14 +89,14 @@ plt.savefig('../plots/k5/langton_copy.pdf')
 # %% [markdown]
 # ## Ok now lets get o-information in the mix
 #%%
+# combine
+o_info_dyn = pd.merge(dyn_df, o_info_df, on='rule')
 total = pd.merge(o_info_dyn, cana_df, on='rule')
 
 # lets add a function for our plotting regression lines
 def regline(model, x_vals):
     return model.params[1] * x_vals + model.params[0]
 
-# combine
-o_info_dyn = pd.merge(dyn_df, o_info_df, on='rule')
 
 # filter out insignificant o-information values
 o_info_dyn = o_info_dyn[(o_info_dyn['p'] == 1) | (o_info_dyn['p'] == 0)]
@@ -291,4 +291,88 @@ ax[4].set_xlabel(r'$T_{4 \rightarrow 2}$')
 ax[0].set_ylabel(r'$r(i)$')
 plt.tight_layout()
 plt.savefig('../plots/k5/transfer.pdf')
+# %% [markdown]
+# ## Synergy Bias in $k=5$ CA
+#
+# ### Comparing the two methods
+# First we'll start with comparing the synergy bias in both $I_{min}$ and 
+# $I_{\pm}$. Maybe they are the same!?
+# %%
+imin_sb = pd.read_csv('../data/k5/stats/imin_synergy_bias.csv')
+imin_sb['B_syn_imin'] = imin_sb['B_syn']
+ipm_sb = pd.read_csv('../data/k5/stats/ipm_synergy_bias.csv')
+ipm_sb['B_syn_ipm'] = ipm_sb['B_syn']
+
+sb = (imin_sb.drop('B_syn', axis = 1)
+             .merge(ipm_sb.drop('B_syn', axis = 1), on = 'rule'))
+
+plt.figure(figsize=(6,6))
+plt.scatter(sb['B_syn_imin'], sb['B_syn_ipm'], alpha=0.4, s=100)
+plt.plot([0,1], [0,1], linestyle = '--', c='k')
+plt.xlabel(r'$B_{syn} \;\; [I_{min}]$')
+plt.ylabel(r'$B_{syn} \;\; [I_{\pm}]$')
+plt.show()
+# %% [markdown]
+# 
+# ### O-information and synergy bias
+#
+#  Is O-information capturing synergy?
+#
+# %%
+info = sb.merge(o_info_dyn, on = 'rule')
+info = info.merge(te_cana, on = 'rule')
+
+print(spearmanr(info['B_syn_imin'], info['o-information']))
+
+linreg = sm.OLS(info['o-information'], sm.add_constant(info['B_syn_imin'])).fit()
+reg_lims = np.array([min(info['B_syn_imin']), max(info['B_syn_imin'])])
+print(linreg.summary())
+
+
+plt.figure()
+
+plt.scatter(info['B_syn_imin'], info['o-information'], alpha = 0.6)
+
+plt.plot(reg_lims, linreg.params[1] * reg_lims + linreg.params[0],
+         linestyle='--', color='C1')
+
+plt.xlabel(r'$B_{syn} \;\; [I_{min}]$')
+plt.ylabel(r'O-information')
+plt.show()
+# %% [markdown]
+# It kind of is!? Correlated at least. 
+# 
+# ### Effective connectivity and synergy bias
+# %%
+info = total.merge(sb, on = 'rule')
+print(spearmanr(info['B_syn_imin'], 1 - info['kr*']))
+
+linreg = sm.OLS(1 - info['kr*'], sm.add_constant(info['B_syn_imin'])).fit()
+reg_lims = np.array([min(info['B_syn_imin']), max(info['B_syn_imin'])])
+print(linreg.summary())
+
+ke_vals = 1 - info['kr*']
+imin_sb = info['B_syn_ipm']
+# %%
+plt.figure(figsize=(4, 4))
+g = sns.JointGrid(x=ke_vals, y=imin_sb)
+g.plot(sns.scatterplot, sns.histplot)
+plt.xlabel(r'$k_e$', fontsize=14)
+plt.ylabel(r'$B_{syn} \;\; [I_{min}]$', fontsize=14)
+plt.tight_layout()
+plt.savefig('../plots/k5/imin_ke.png', pad_inches=0.2)
+plt.show()
+# %%
+# ### Maybe synergy bias and transient length will be cool
+#
+# %%
+
+plt.figure(figsize=(4, 4))
+g = sns.JointGrid(x=info['B_syn_ipm'], y=np.log(info['period_transient']))
+g.plot(sns.scatterplot, sns.histplot)
+plt.xlabel(r'$B_{syn} \;\; [I_{min}]$', fontsize=14)
+plt.ylabel(r'$Period + Transient$', fontsize=14)
+plt.tight_layout()
+plt.savefig('../plots/k5/imin_transient.png', pad_inches=0.2)
+plt.show()
 # %%

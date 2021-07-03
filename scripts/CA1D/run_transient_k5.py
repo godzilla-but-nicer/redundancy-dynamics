@@ -15,17 +15,20 @@ unq_starts = []
 for i in range(runs):
     ca.set_state(ca.rng.choice(2, size=N))
     time_series = ca.simulate_time_series(N, max_steps)
-    unq_starts.append(time_series[100:,:])
+    print(time_series.shape)
+    unq_starts.append(time_series[50:,:])
 
 # combine all of the individual runs into one big one
 combined_series = np.vstack(unq_starts)
-
-# pull out all possible sequences of 5
+print(combined_series[:10])
+# pull out all possible nonoverlapping sequences of 5
+# nonoverlapping shouldnt matter but we just dont need as much data as taking 
+# overlapping gives us
 neighborhoods = []
-for i in range(N-4):
-    neighborhoods.append(combined_series[:,i:i+5])
+for i in range(int(N / 5)):
+    neighborhoods.append(combined_series[:, (i*5):(i*5)+5])
 
 neighborhoods = np.vstack(neighborhoods)
-
+print(neighborhoods[:10])
 file_name = 'data/k5/runs/' + str(rule) + '_' + str(N) + '_' + str(max_steps) + '_' + str(runs) + '.csv'
 np.savetxt(file_name, neighborhoods, delimiter=',', fmt='%d')

@@ -21,7 +21,7 @@
 
 % line spacing
 \usepackage{setspace}
-\doublespacing
+\singlespacing
 
 % author note
 \usepackage{xcolor}
@@ -41,36 +41,62 @@
 
 \section{Introduction}
 
-\section{Results}
-
+\section{Results - Outline}
 \begin{enumerate}
-    \item bsyn and ke show similar relationships to system dynamics ($\rho=0.693, \; p<0.05$) and ($\rho=0.511, \; p<0.05$) [figure in supplement?] 
-    \item Output entropy and dynamics?? \figref{ent-dyn} [get statistics?]
-    \item 
+    \item bsyn and ke show similar relationships to system dynamics 
+    ($\rho=0.693, \; p<0.05$ Fig. \ref{fig:Dynamics}B) and 
+    ($\rho=0.511, \; p<0.05$ Fig. \ref{fig:dynamics}C) [figure in supplement?]
+    \item Output entropy and dynamics?? \figref{dynamics}A [get statistics?]
+    \item $k_e$ and $B_{syn}$ correlate. ($\rho=0.5210, \; p < 0.05$). Figure \ref{fig:ke-bsyn}
+    \item Synergy bias is a better predictor of effective connectivity than
+          other information theoretic approaches for the overall system. [get stats]
+          Fig. \ref{fig:ke-oinfo}
+    \item At the per-input level traditional methods also fail to detect redundancy \ref{fig:r-te}
 \end{enumerate}
 
-\begin{figure} 
-    \includegraphics{k5/bsyn_dyn.pdf}
-    \caption{Synergy Bias measures transient length kind of}
-    \label{fig:bsyn-dyn}
-\end{figure}
+\section{Results - Text}
 
-\begin{figure} 
-    \includegraphics{k5/ke_dynamics.pdf}
-    \caption{Synergy Bias measures transient length kind of}
-    \label{fig:ke-dyn}
+\subsection{Several measures correlate with complexity of dynamics}
+
+We measure the complexity of the dynamics of a particular CA rule by adding the
+transient length $l$ and the period $T$. As this sum increases we say the
+dynamics are more complex. This choice allows us to fill in very long dynamics
+with a lower bound (see Methods \ref{sec:finding-trans}). We find that the
+output entropy of the rule table increases with this sum as well as its parts 
+shown in Figure \ref{fig:dynamics}A. 
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{k5/all_dynamics.pdf}
+    \caption{\textbf{A} Transient length, attractor period, and their sum all 
+    correlate with the entropy of the oiutput distribution. \textbf{B} Synergy 
+    bias $B_{syn}$ correlates with the the sum of the attractor period and 
+    transient length ($\rho=0.693, \; p<0.05$). \textbf{C} Effective
+    connectivity, $k_e^*$ also correlates with the sum of atttractor period and
+    transient length ($\rho=0.511, \; p<0.05$) and appears qualitatively quite
+    similar to $B_{syn}$ in this regard.}
+    \label{fig:dynamics}
+\end{figure} 
+
+\begin{figure}
+    \includegraphics{k5/ke_vs_bsyn_dyn.pdf}
+    \caption{Synergy increases with effective connectivity}
+    \label{fig:ke-bsyn}
 \end{figure}
 
 \begin{figure}
-    \includegraphics{k5/entropy_dynamics.pdf}
-    \caption{rule table output entropy predicts dynamics}
-    \label{fig:ent-dyn}
+    \includegraphics{k5/ke_o_info_reg.pdf}
+    \caption{$k_e^*$ correlates negatively with O-information}
+    \label{fig:ke-oinfo}
 \end{figure}
 
 \begin{figure}
-    \includegraphics{k5/ke_vs_bsyn.pdf}
-    \caption{a fi}
-    \label{fig:be-bsyn}
+    \includegraphics{k5/directed_cana.pdf}
+    \caption{Transfer entropy fails to identify input redundancy at the per input level}
+    \label{fig:r-te}
+\end{figure}
+
+\begin{figure}
+    \includegraphics{k5/synergy_bias.png}
 \end{figure}
 
 \section{Discussion}

@@ -13,55 +13,32 @@ import seaborn as sns
 from scipy.stats import spearmanr
 
 #%%
-# set lambda of interest
+
+# cana data is organized by lambda value
 lambda_vals = [1,2,3,9,10,11,12,13,14,15,16,17,18,19,22,27,28,29]
-# lambda_vals = [1]
 
 # lists that I can use to concatenate my dataframes
-dyn_list = []
 cana_list = []
 
+# combine and clean. get mean of feautres by rule
+dyn = pd.read_csv('../data/k5/combined_dynamics.csv', index_col=0) 
+dyn = (dyn.groupby('rule')
+          .mean()
+          .reset_index())
+
+
 for lamb in lambda_vals:
-    # load the dynamics data
-    dyn = pd.read_csv('../data/k5/attractors/lambda_' + str(lamb) + '_attractors.csv',
-                      index_col=0)
-    # have to do some really dumb conversion
-    dyn['rule'] = dyn['rule'].astype(int)
-    
-    # lets just average over transients and periods here
-    trans = dyn[dyn['measure'] == 'transient'].copy().drop('measure', axis=1)
-    trans['transient'] = trans['value']
-    trans = trans[['rule', 'trial', 'transient']]
-    trans['unq_ind'] = range(0, trans.shape[0])
-    print(trans.shape)
-
-    peri = dyn[dyn['measure'] == 'period'].copy().drop('measure', axis=1)
-    peri['period'] = peri['value']
-    peri = peri[['rule', 'trial', 'period']]
-    peri['unq_ind'] = range(0, peri.shape[0])
-    print(peri.shape)
-
-
-    # combine and clean. get mean of feautres by rule
-    dyn1 = pd.merge(peri, trans, how='left', on=['unq_ind'])
-    dyn1['lambda'] = lamb
-    dyn1['rule'] = dyn1['rule_x']
-    dyn1['period_transient'] = dyn1['period'] + dyn1['transient']
-    dyn1 = dyn1.fillna(64000)
-    dyn = (dyn1[['lambda', 'rule', 'period_transient']]
-           .groupby('rule')
-           .mean()
-           .reset_index())
-
-
     # load the canalization data
     cana = pd.read_csv('../data/k5/stats/k5_cana_lambda_' + str(lamb) + '.csv', 
                        index_col=0)
-    cana['rule'] = dyn['rule'].astype(int)
+    cana['rule'] = cana['rule'].astype(int)
+    cana['lambda'] = lamb
 
-    # add to the lists
-    dyn_list.append(dyn)
+
     cana_list.append(cana)
+
+# copmbine all of the cana stuff
+cana_df = pd.concat(cana_list)
 
 # load the o information data frame that is all in one thing
 o_info_df = pd.read_csv('../data/k5/stats/o_information.csv', index_col=0)
@@ -69,23 +46,24 @@ o_info_df['rule'] = o_info_df['rule'].astype(int)
 
 # load the info dynamics dataframes and combine them
 te_df = pd.read_csv('../data/k5/stats/te_rules.csv', index_col=0)
+te_df['rule'] = te_df['rule'].astype(int)
 ais_df = pd.read_csv('../data/k5/stats/ais_rules.csv', index_col=0)
+ais_df['rule'] = ais_df['rule'].astype(int)
 info_dyn = pd.merge(te_df, ais_df, on='rule')
 info_dyn[info_dyn == -1] = np.NAN
 
-# stack the dataframes
-dyn_df = pd.concat(dyn_list)
-cana_df = pd.concat(cana_list)
 # %% [markdown]
 # ## Let's try  and make that langton dynamics plot
 #%%
+dyn_df = dyn.merge(cana_df, on='rule')
 lambda_means = dyn_df.groupby('lambda').mean()
 fig, ax = plt.subplots()
-ax.plot(lambda_means.index / 30, lambda_means['period_transient'])
+ax.plot(lambda_means.index / 30, lambda_means['transient'])
 ax.set_yscale('log')
 ax.set_xlabel(r'$\lambda$')
-ax.set_ylabel('Period + Transient')
+ax.set_ylabel('Transient')
 plt.savefig('../plots/k5/langton_copy.pdf')
+
 # %% [markdown]
 # ## Ok now lets get o-information in the mix
 #%%
@@ -128,20 +106,20 @@ plt.show()
 # ## ok now let's get the canalization data in the mix
 #%%
 
-ke_regress = sm.OLS(np.log(total['period_transient']), sm.add_constant(1-total['kr*'])).fit()
-ke_lims = np.arange(min(1-total['kr*']), max(1-total['kr*']), 0.01)
+ke_regress = sm.OLS(np.log(dyn_df['transient']), sm.add_constant(1-dyn_df['kr*'])).fit()
+ke_lims = np.arange(min(1-dyn_df['kr*']), max(1-dyn_df['kr*']), 0.01)
 
 # get spearman correlations
-ke_corr = spearmanr((1-total['kr*']), total['period_transient'])
-ks_corr = spearmanr(total['ks*'], total['period_transient'])
+ke_corr = spearmanr((1-dyn_df['kr*']), dyn_df['transient'])
+ks_corr = spearmanr(dyn_df['ks*'], dyn_df['transient'])
 
 fig, ax = plt.subplots(sharey=True)
-ax.scatter((1 - total['kr*']), total['period_transient'], s=10, alpha=0.5)
+ax.scatter((1 - dyn_df['kr*']), dyn_df['transient'], s=10, alpha=0.5)
 #ax.text(0.32, 10**4, r'$\rho={:.3f}$'.format(ke_corr[0]), ha='center')
 ax.set_xlabel(r'$k_e$')
 ax.set_ylabel('Period + Transient')
 
-# ax[1].scatter(total['ks*'], total['period_transient'], s=10, alpha=0.7)
+# ax[1].scatter(dyn_df['ks*'], dyn_df['period_transient'], s=10, alpha=0.7)
 # ax[1].set_xlabel(r'$k_s^*$')
 # ax[1].text(0.82, 10**4, r'$\rho={:.3f}$'.format(ks_corr[0]), ha='center')
 ax.set_yscale('log')
@@ -159,7 +137,7 @@ oke_lims = np.linspace(min(1-total['kr*']), max(1-total['kr*']), 20)
 oke_y = regline(oke_reg, oke_lims)
 print(oke_reg.summary())
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots())
 ax.scatter((1-total['kr*']), total['o-information'], s=10, alpha=0.5)
 ax.plot(oke_lims, oke_y, color='C1', linestyle='--')
 ax.set_xlabel(r'$k_e$')
@@ -240,6 +218,7 @@ ax[1, 4].set_xlabel(r'$T_{4 \rightarrow 2}$')
 ax[0, 0].set_ylabel(r'$r(i)$')
 ax[1, 0].set_ylabel(r'$s(i)$')
 plt.tight_layout()
+plt.show()
 # %%
 corr_mat = te_cana.drop(['rule', 's(0)', 's(1)', 's(2)', 's(3)', 's(4)', 'kr*', 'ks*'], axis=1).corr()
 sns.heatmap(corr_mat, mask=np.triu(corr_mat), annot=True)
@@ -313,10 +292,7 @@ plt.xlabel(r'$B_{syn} \;\; [I_{min}]$')
 plt.ylabel(r'$B_{syn} \;\; [I_{\pm}]$')
 plt.show()
 # %% [markdown]
-# 
-# ### O-information and synergy bias
-#
-#  Is O-information capturing synergy?
+# )ring synergy?
 #
 # %%
 info = sb.merge(o_info_dyn, on = 'rule')
@@ -344,7 +320,7 @@ plt.show()
 # 
 # ### Effective connectivity and synergy bias
 # %%
-info = total.merge(sb, on = 'rule')
+info = dyn_df.merge(sb, on = 'rule')
 print(spearmanr(info['B_syn_imin'], 1 - info['kr*']))
 
 linreg = sm.OLS(1 - info['kr*'], sm.add_constant(info['B_syn_imin'])).fit()

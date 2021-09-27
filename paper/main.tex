@@ -27,43 +27,13 @@
 \usepackage{xcolor}
 \newcommand{\note}[1]{\textcolor{red}{[#1]}}
 
-\title{Luis Paper}
+\title{Luis Paper Figures}
 \author{Pat Wall}
 \date{\today}
 
 \begin{document}
 
 \maketitle
-
-\begin{abstract}
-    Heeeyyyyyy this is the abstract baby. ill write this last probably!!
-\end{abstract}
-
-\section{Introduction}
-
-\section{Results - Outline}
-\begin{enumerate}
-    \item bsyn and ke show similar relationships to system dynamics 
-    ($\rho=0.693, \; p<0.05$ Fig. \ref{fig:Dynamics}B) and 
-    ($\rho=0.511, \; p<0.05$ Fig. \ref{fig:dynamics}C) [figure in supplement?]
-    \item Output entropy and dynamics?? \figref{dynamics}A [get statistics?]
-    \item $k_e$ and $B_{syn}$ correlate. ($\rho=0.5210, \; p < 0.05$). Figure \ref{fig:ke-bsyn}
-    \item Synergy bias is a better predictor of effective connectivity than
-          other information theoretic approaches for the overall system. [get stats]
-          Fig. \ref{fig:ke-oinfo}
-    \item At the per-input level traditional methods also fail to detect redundancy \ref{fig:r-te}
-\end{enumerate}
-
-\section{Results - Text}
-
-\subsection{Several measures correlate with complexity of dynamics}
-
-We measure the complexity of the dynamics of a particular CA rule by adding the
-transient length $l$ and the period $T$. As this sum increases we say the
-dynamics are more complex. This choice allows us to fill in very long dynamics
-with a lower bound (see Methods \ref{sec:finding-trans}). We find that the
-output entropy of the rule table increases with this sum as well as its parts 
-shown in Figure \ref{fig:dynamics}A. 
 
 \begin{figure}
     \includegraphics[width=\textwidth]{k5/all_dynamics.pdf}
@@ -75,12 +45,16 @@ shown in Figure \ref{fig:dynamics}A.
     transient length ($\rho=0.511, \; p<0.05$) and appears qualitatively quite
     similar to $B_{syn}$ in this regard.}
     \label{fig:dynamics}
-\end{figure} 
+\end{figure}
 
 \begin{figure}
     \includegraphics{k5/ke_vs_bsyn_dyn.pdf}
     \caption{Synergy increases with effective connectivity}
     \label{fig:ke-bsyn}
+\end{figure}
+
+\begin{figure}
+    \includegraphics{k5/bsyn_ke_reg.pdf}
 \end{figure}
 
 \begin{figure}
@@ -96,9 +70,10 @@ shown in Figure \ref{fig:dynamics}A.
 \end{figure}
 
 \begin{figure}
-    \includegraphics{k5/synergy_bias.png}
+    \includegraphics{k5/corr_mat.pdf}
 \end{figure}
 
-\section{Discussion}
+\begin{figure}
+\end{figure}
 
 \end{document}

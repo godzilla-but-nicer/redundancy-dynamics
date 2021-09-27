@@ -4,17 +4,19 @@ import sys
 import time
 from casim import CA1D
 
+overall_start = time.time()
+
 # unpack command-line args
 N = int(sys.argv[1])
-max_steps = N * 1000
+max_steps = N * 10000
 lamb = int(sys.argv[2])
 n_rules = int(sys.argv[3])
 n_trials = int(sys.argv[4])
 
 # these will become columns in long format dataframe
 rule_list = []
-measure_list = []
-value_list = []
+period_list = []
+transient_list = []
 run_list = []
 
 # initialize the thing
@@ -32,18 +34,14 @@ for rule in range(n_rules):
         
         # add everything to the columns
         rule_list.append(ca.rule)
-        measure_list.append('period')
-        value_list.append(per)
-        rule_list.append(ca.rule)
-        measure_list.append('transient')
-        value_list.append(tra)
-        run_list.append(trial)
+        period_list.append(per)
+        transient_list.append(tra)
         run_list.append(trial)
 
     print('Rule ' + str(rule + 1) + '/' + str(n_rules) + ' complete in: ' + str(time.time() - rule_start))
     
 # get everything into a dataframe to save a csv
-df_dict = {'rule': rule_list, 'trial':run_list, 'measure': measure_list, 'value': value_list}
+df_dict = {'rule': rule_list, 'trial': run_list, 'period': period_list, 'transient': transient_list}
 csv_path = 'data/k5/attractors/lambda_' + str(lamb) + '_attractors.csv'
 df_out = pd.DataFrame(df_dict)
 df_out.to_csv(csv_path)
@@ -55,4 +53,6 @@ with open(param_file, 'w') as fout:
     fout.write('max_steps: ' + str(max_steps) + '\n')
     fout.write('n_rules: ' + str(n_rules) + '\n')
     fout.write('n_trials: ' + str(n_trials) + '\n')
+
+print('Overall Runtime:', (time.time() - overall_start) / 60, 'mins')
 

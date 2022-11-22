@@ -4,7 +4,7 @@
 # sampled a bit more evenly and hopefully its all good baby
 # %%
 from statsmodels.sandbox.regression.predstd import wls_prediction_std
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr, entropy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,8 +13,8 @@ import statsmodels.api as sm
 
 rules = pd.read_csv('../data/k5/sampled_rules.csv', index_col=0)
 ipm_full = pd.read_csv('../data/k5/stats/ipm_synergy_bias.csv', index_col=0).reset_index()
-#ipm = ipm_full.merge(rules, on='rule').dropna()
-ipm = ipm_full.dropna()
+ipm = ipm_full.merge(rules, on='rule').dropna()
+#ipm = ipm_full.dropna()
 ipm['rule'] = ipm['rule'].astype(int)
 # %% [markdown]
 # ## Synergy Bias Distribution
@@ -23,6 +23,7 @@ ipm['rule'] = ipm['rule'].astype(int)
 # %%
 print('# Samples with valid B_syn: ', ipm.shape[0])
 sns.histplot(ipm['B_syn'])
+plt.xlabel(r'$B_{syn}$')
 plt.xlabel('Synergy Bias')
 plt.savefig('../plots/k5/bsyn_hist.png')
 plt.savefig('../plots/k5/bsyn_hist.pdf')
@@ -41,7 +42,8 @@ plt.show()
 cana = pd.read_csv('../data/k5/stats/k5_cana.csv', index_col=0)
 ipm_cana = ipm.merge(cana, on='rule')
 ipm_cana['ke*'] = 1 - ipm_cana['kr*']
-sns.histplot(ipm_cana['ke*'], kde=True)
+sns.histplot(ipm_cana['ke*'])
+plt.xlabel(r'$k_e$')
 plt.savefig('../plots/k5/ke_hist.pdf')
 plt.savefig('../plots/k5/ke_hist.png')
 
@@ -87,20 +89,19 @@ plt.show()
 #
 # Ok so  correlates (spearman's r) can we do regression? It looks like OLS
 # might just work?
-# %% [markdown]
+# %% 
 
 # set up weighted least squares linear regression
 X = sm.add_constant(ipm_cana['B_syn'])
 y = ipm_cana['ke*']
-linreg = sm.WLS(y, X, weights=ipm_cana['mutual_info']).fit()
 olsfit = sm.OLS(y, X).fit()
 
 # lets get the residuals
-ipm_cana['pred_ols'] = linreg.params[0] + linreg.params[1] * ipm_cana['ke*']
+ipm_cana['pred_ols'] = olsfit.params[0] + olsfit.params[1] * ipm_cana['ke*']
 ipm_cana['resi_ols'] = ipm_cana['B_syn'] - ipm_cana['pred_ols']
 
 # plot the distribution of residuals and the residuals themselves
-fig = plt.figure(constrained_layout=True, figsize=(8, 8))
+fig = plt.figure(constrained_layout=True, figsize=(5, 5))
 ax = fig.subplot_mosaic([['A', 'B'],
                          ['C', 'C']])
 
@@ -108,12 +109,12 @@ ax = fig.subplot_mosaic([['A', 'B'],
 ax['A'].scatter(ipm_cana['ke*'], ipm_cana['resi_ols'], facecolor='none', 
                 edgecolor='grey')
 ax['A'].axhline(0, color='C1', linestyle='dotted', linewidth = 5)
-ax['A'].set_xlabel(r'$k_e^*$')
-ax['A'].set_ylabel('obs - pred')
+ax['A'].set_xlabel(r'$k_e$')
+ax['A'].set_ylabel('Residuals: obs - pred')
 
 # distribution
 sns.histplot(ipm_cana['resi_ols'], ax=ax['B'])
-ax['B'].set_xlabel(r'obs - pred')
+ax['B'].set_xlabel(r'Residuals: obs - pred')
 ax['B'].set_ylabel('Count')
 
 # the fit itself
@@ -122,13 +123,12 @@ ax['C'].scatter(ipm_cana['B_syn'], ipm_cana['ke*'], facecolor='none',
                 edgecolor='C0', label='data')
 
 # the WLS fit
-wls_ll = round(linreg.llf, 2)
 ols_ll = round(olsfit.llf, 2)
 
-ax['C'].plot(ipm_cana['B_syn'], linreg.fittedvalues, 'g--',
-             label=r'WLS $l={}$'.format(wls_ll))
 ax['C'].plot(ipm_cana['B_syn'], olsfit.fittedvalues, '--', color='C1', 
-             label=r'OLS $l={}$'.format(ols_ll))
+             label=r'OLS')
+plt.xlabel(r'$B_{syn}$')
+plt.ylabel(r'$k_e$')
 
 
 # labels
@@ -136,6 +136,8 @@ ax['C'].legend()
 # save it
 plt.savefig('../plots/k5/bsyn_ke_reg.pdf')
 plt.savefig('../plots/k5/bsyn_ke_reg.png')
+print(olsfit.summary())
+plt.show()
 
 # %% [markdown]
 # # O-information
@@ -151,6 +153,8 @@ ipm = ipm_cana.merge(o_info, on='rule')
 # for bonferoni, my p values dont have enough resolution.
 sig_o_info = ipm[(ipm['p'] > 0.95) | (ipm['p'] < 0.05)][['rule', 'B_syn', 'ke*', 'o-info']]
 
+# lets get a spearman correlation too
+
 # make the plot for the comparison with synergy bias
 sig_o_info['B_red'] = 1 - sig_o_info['B_syn']
 fig, ax = plt.subplots()
@@ -161,7 +165,6 @@ plt.savefig('../plots/k5/bsyn_oinfo.pdf')
 plt.savefig('../plots/k5/bsyn_oinfo.png')
 plt.show()
 
-# lets get a spearman correlation too
 print(spearmanr(sig_o_info['B_red'], sig_o_info['o-info']))
 # %% [markdown]
 # not the most impressive relationship.
@@ -170,12 +173,15 @@ print(spearmanr(sig_o_info['B_red'], sig_o_info['o-info']))
 #
 # the more important one anyway.
 # %%
-sns.scatterplot(sig_o_info['ke*'], sig_o_info['o-info'])
+o_info_corr = spearmanr(sig_o_info['ke*'], sig_o_info['o-info'])
+sns.scatterplot(sig_o_info['o-info'], sig_o_info['ke*'])
+plt.text(-1.1, 0.45, r'$\rho={:.3f}$'.format(o_info_corr[0]))
+plt.xlabel('O-information')
+plt.ylabel(r'$k_e$')
 plt.savefig('../plots/k5/ke_oinfo.pdf')
 plt.savefig('../plots/k5/ke_oinfo.png')
 plt.show()
-print(spearmanr(sig_o_info['ke*'], sig_o_info['o-info']))
-
+print(o_info_corr)
 # %% [markdown]
 # Uncorrelated! thats weird. it doesn't really seem like O-information is
 # as useful as we might like.
@@ -419,7 +425,7 @@ ipm_dyn['log_mean_transient'] = np.log(ipm_dyn['mean_transient'])
 
 sns.scatterplot(x='B_syn', y='ke*', hue='log_mean_transient', 
                 data=ipm_dyn, palette='cividis', alpha=0.7)
-plt.text(0.13, 0.6, r'$\rho={:.3f}$'.format(spearmanr(ipm_cana['ke*'], ipm_cana['B_syn'])[0]))
+# plt.text(0.13, 0.6, r'$\rho={:.3f}$'.format(spearmanr(ipm_cana['ke*'], ipm_cana['B_syn'])[0]))
 plt.ylabel(r'$k_e^*$')
 plt.xlabel(r'$B_{syn}$')
 plt.legend(title=r'$ln(l)$')
@@ -555,7 +561,7 @@ big_df = pd.read_csv('../data/k5/pid/ipm.csv', index_col=0)
 keep_cols = ['rule', '{0:1:2:3:4}', '{0}{1}{2}{3}{4}', 
              '{0}', '{1}','{2}','{3}','{4}']
 ipm_singles = big_df[keep_cols]
-ipm_singles = ipm_singles.merge(cana, on='rule')
+#ipm_singles = ipm_singles.merge(cana, on='rule')
 ipm_singles = ipm_singles.merge(ipm_full, on = 'rule').drop(['mutual_info'], axis=1)
 # %% [markdown]
 #
@@ -606,18 +612,40 @@ mat = sns.heatmap(df_corr, annot=False, xticklabels=df_marked.columns,
                     cmap='RdBu', center=0)
 plt.axvline(x=8, c='k', alpha=0.7, ls=':')
 plt.axhline(y=8, c='k', alpha=0.7, ls=':')
+plt.tight_layout()
 plt.savefig('../plots/k5/corr_mat.png')
 plt.savefig('../plots/k5/corr_mat.pdf')
 
 
 # %% [markdown]
 # %% [markdown]
-# # Imin and Ipm
-# %%
-imin_df = pd.read_csv('../data/k5/pid/imin.csv', index_col=0)
-imin_sb = pd.read_csv('../data/k5/stats/imin_synergy_bias.csv', index_col=0)
-imin_singles = imin_df[keep_cols]
-imin_singles = imin_singles.merge(imin_sb, on = 'rule')
+# # Imin and Ipmimport re
+
+def pretty_labels_map(atom_labels):
+    """
+    transforms all of these crazy tuples into the notation used in williams and
+    beer I_min PID
+    """
+    rename_map = {}
+    for label in atom_labels:
+        new_label = str(label)
+
+        # eliminate commas and spaces
+        new_label = new_label.replace(',', '')
+        new_label = new_label.replace(' ', '')
+
+        # replace braces
+        new_label = new_label.replace('(', '{')
+        new_label = new_label.replace(')', '}')
+
+        # separate digits with colons
+        while re.search(r'\d\d', new_label):
+            new_label = re.sub(r'(\d)(\d)', r'\1:\2', new_label)
+
+        # put them in a map
+        rename_map[label] = new_label[1:-1]
+
+    return rename_mape(imin_sb, on='rule').drop('mutual_info', axis=1)
 
 # need to make sure we have the same rows in both dataframes
 imin_rules = imin_singles[['rule']]
@@ -630,13 +658,21 @@ corrs = []
 for lab in labels:
     corrs.append(spearmanr(imin_ipm_corr[lab], ipm_imin_corr[lab])[0])
 
+#print(imin_df.shape, ipm_cana.shape)
+
 plt.figure()
 plt.bar(labels, corrs)
 plt.xticks(rotation=50)
 plt.ylabel(r'$\rho(I_{min},\; I_\pm)$')
-plt.savefig('plots/k5/imin_ipm_compare.png')
-plt.savefig('plots/k5/imin_ipm_compare.pdf')
+plt.savefig('../plots/k5/imin_ipm_compare.png')
+plt.savefig('../plots/k5/imin_ipm_compare.pdf')
 # %%
 plt.figure()
 plt.scatter(imin_ipm_corr['B_syn'], ipm_imin_corr['B_syn'])
+# %%
+thing1 = ipm_singles_rules['{0:1:2:3:4}']
+thing2 = ipm_singles_rules['ke']
+corr = spearmanr(thing1, thing2)
+print(corr)
+plt.scatter(thing1, thing2)
 # %%

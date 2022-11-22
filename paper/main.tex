@@ -13,7 +13,7 @@
 % Figures
 \usepackage{graphicx}
 \newcommand{\figref}[1]{Fig.~\ref{fig:#1}}
-\graphicspath{{../plots/}}
+\graphicspath{{../plots/old/}}
 
 % subfigures
 \usepackage{caption}
@@ -27,7 +27,7 @@
 \usepackage{xcolor}
 \newcommand{\note}[1]{\textcolor{red}{[#1]}}
 
-\title{Luis Paper Figures}
+\title{Random Figures in a Random Order}
 \author{Pat Wall}
 \date{\today}
 
@@ -41,39 +41,86 @@
     correlate with the entropy of the oiutput distribution. \textbf{B} Synergy 
     bias $B_{syn}$ correlates with the the sum of the attractor period and 
     transient length ($\rho=0.693, \; p<0.05$). \textbf{C} Effective
-    connectivity, $k_e^*$ also correlates with the sum of atttractor period and
+    connectivity, $k_e^*$ also correlates with the 
     transient length ($\rho=0.511, \; p<0.05$) and appears qualitatively quite
     similar to $B_{syn}$ in this regard.}
     \label{fig:dynamics}
 \end{figure}
 
 \begin{figure}
-    \includegraphics{k5/ke_vs_bsyn_dyn.pdf}
-    \caption{Synergy increases with effective connectivity}
+    \includegraphics[width=\textwidth]{k5/ke_vs_bsyn_dyn.pdf}
+    \caption{Effective connectivity increases with synergy bias ($\rho=0.323,\; p<0.05$).
+             Longer dynamics are associated with both larger synergy bias and larger
+             effective connectivity}
     \label{fig:ke-bsyn}
 \end{figure}
 
 \begin{figure}
     \includegraphics{k5/bsyn_ke_reg.pdf}
+    \caption{Linear for for the relationship between $B_{syn}$ and $k_e$ 
+             ($R^2 = 0.057, \; \beta = 0.1698, \; p < 0.05$). Despite the obvious
+             increasing relationship between the two variables, a linear fit
+             explains little of the variance. Skew in the residuals might have
+             an effect on the quality of the OLS fit.}
+    \label{fig:regression}
 \end{figure}
 
+\begin{table}
+    \caption{Regression coefficients for linear models explaining synergy bias}
+    \centering
+    \begin{tabular}{lrrr}
+    Variable  & Model 1                                                                   & Model 2                                                                                                       & Model 3                                                                                                                                                                                 \\
+    \hline
+    \vspace{5mm}
+    Const     & \begin{tabular}[c]{@{}r@{}}$0.4372 \pm 0.044$\\$(p < 0.001)$\end{tabular} & \begin{tabular}[c]{@{}r@{}}$0.4755 \pm 0.047$\\$(p < 0.001)$\end{tabular}                                     & \begin{tabular}[c]{@{}r@{}}$0.9225 \pm 0.188 $\\$(p<0.001)$\end{tabular}                                                                                                                \\
+    \vspace{5mm}
+    $k_e$     & \begin{tabular}[c]{@{}r@{}}$0.3428 \pm 0.069$\\$(p < 0.001)$\end{tabular} & \begin{tabular}[c]{@{}r@{}}$0.4013 \pm 0.073$\\$(p < 0.001)$\textcolor[rgb]{0.827,0.827,0.831}{}\end{tabular} & \begin{tabular}[c]{@{}r@{}}\textcolor[rgb]{0.827,0.827,0.831}{\textcolor{black}{$-0.3367 \pm 0.310$}}\\\textcolor[rgb]{0.827,0.827,0.831}{\textcolor{black}{$(p=0.278)$}}\end{tabular}  \\
+    \vspace{5mm}
+    $k_a$     &                                                                           & \begin{tabular}[c]{@{}r@{}}$-0.1527 \pm 0.064$\\$(p=0.018)$\textcolor[rgb]{0.827,0.827,0.831}{}\end{tabular}  & \begin{tabular}[c]{@{}r@{}}$-1.1822 \pm 0.425$\\$(p=0.006)$\end{tabular}                                                                                                                \\
+    \vspace{5mm}
+    $k_a k_e$ & \multicolumn{1}{l}{}                                                      & \multicolumn{1}{l}{}                                                                                          & \begin{tabular}[c]{@{}r@{}}$1.6756 \pm 0.684$\\$(p=0.015)$\end{tabular}                                                                                                                
+    \end{tabular}
+\end{table}
+
 \begin{figure}
-    \includegraphics{k5/ke_o_info_reg.pdf}
-    \caption{$k_e^*$ correlates negatively with O-information}
+    \includegraphics{k5/ke_oinfo.pdf}
+    \caption{$k_e^*$ correlates negatively with O-information 
+    ($\rho=-0.293, \; p < 0.05$) but shows no obvious functional relationship.
+    This lack of a clear relationship suggests that O-information is not a useful
+    measure of $k_e$.}
     \label{fig:ke-oinfo}
 \end{figure}
 
 \begin{figure}
     \includegraphics{k5/directed_cana.pdf}
-    \caption{Transfer entropy fails to identify input redundancy at the per input level}
+    \caption{Directed information measures transfer entropy and active 
+    information storage are significantly but weakly negatively correlated with
+    $k_e$ ($\rho = -0.127, \; p<0.05$). As with O-information, a lack of obvious
+    functional relationship make these weak measures of redundancy.}
     \label{fig:r-te}
 \end{figure}
 
 \begin{figure}
     \includegraphics{k5/corr_mat.pdf}
+    \caption{Correlation matrix for interpretable partial information atoms and
+    redundancy measures. Notable correlations are those with $k_e$, particularly
+    the positive correlation with the pure redundancy $\{0\}\{1\}\{2\}\{3\}\{4\}$
+    ($\rho = 0.592, \; p<0.05$) and pure synergy $\{0:1:2:3:4\}$ 
+    ($\rho=0.580, \; p<0.05$).}
+    \label{fig:corr-mat}
 \end{figure}
 
 \begin{figure}
+    \includegraphics{k5/bsyn_hist.pdf}
+    \caption{Hisogram of $B_{syn}$ values shows a left skewed distribution with
+    a peak around $B_{syn}=0.65$ and another peak around $B_{syn}=0.85$}
+    \label{fig:bsyn-hist}
+\end{figure}
+
+\begin{figure}
+    \includegraphics{k5/ke_hist.pdf}
+    \caption{Histogram of $k_e$ values shows a left-skewed distribution with a
+    peak near $k_e=0.675$ and a narrow range relative to $B_{syn}$.}
 \end{figure}
 
 \end{document}

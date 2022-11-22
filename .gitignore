@@ -135,3 +135,18 @@ data/
 *.png
 plots/
 presentations/
+notebooks/
+notes.md
+
+# latex side effect files
+*_temp.tex
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.pdf
+*.run.xml
+*.synctex.gz
+*-blx.bib
+

@@ -16,25 +16,25 @@ for rule in tqdm(rules):
 
     # use CANA to compute canalization
     bn = BooleanNode.from_output_list(outputs=arr, name=rule)
-    # ks = bn.input_symmetry()
-    kr = bn.input_redundancy()
-    # sym0, sym1, sym2, sym3, sym4 = bn.edge_symmetry()
+    ks = bn.input_symmetry()
+    kr = bn.input_redundancy(operator=max)
+    sym0, sym1, sym2, sym3, sym4 = bn.edge_symmetry()
     red0, red1, red2, red3, red4 = bn.edge_redundancy()
 
     # update the dictionary with the PI values
     canal['rule'] = rule
     canal['kr*'] = kr
-    # canal['ks*'] = ks
+    canal['ks*'] = ks
     canal['r(0)'] = red0
     canal['r(1)'] = red1
     canal['r(2)'] = red2
     canal['r(3)'] = red3
     canal['r(4)'] = red4
-    # canal['s(0)'] = sym0
-    # canal['s(1)'] = sym1
-    # canal['s(2)'] = sym2
-    # canal['s(3)'] = sym3
-    # canal['s(4)'] = sym4
+    canal['s(0)'] = sym0
+    canal['s(1)'] = sym1
+    canal['s(2)'] = sym2
+    canal['s(3)'] = sym3
+    canal['s(4)'] = sym4
 
     df_dict.append(canal)
 

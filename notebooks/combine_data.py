@@ -88,7 +88,7 @@ df_cana.to_csv('../data/k5/stats/k5_cana.csv')
 # single rows into one df and rename the columns
 # %%
 dfs = []
-for file in glob('../data/k5/pid/*_imin.csv'):
+for file in glob('../data/k5/pid/raw_imin/*_imin.csv'):
     rule = int(file.split('/')[-1].split('_')[0])
     print('Adding rule ', rule)
     df_row = pd.read_csv(file, index_col = 0)
